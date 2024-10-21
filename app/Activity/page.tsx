@@ -129,6 +129,7 @@ const RecentActivity = () => {
       isSent = true;
       recipient = tx.payload.arguments[0];
     } else if (depositEvent) {
+      console.log("deposit event identified");
       amount = parseInt(depositEvent.data.amount, 10);
       isSent = false;
       recipient = depositEvent.data.sender;
