@@ -54,7 +54,7 @@ const RecentActivity = () => {
         throw new Error("Failed to fetch transactions");
       }
 
-      console.log("response is ", response);
+      console.log("response is ", response.json);
 
       const data: Transaction[] = await response.json();
       setTransactions((prev) => [...prev, ...data]);
