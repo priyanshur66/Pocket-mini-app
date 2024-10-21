@@ -54,8 +54,6 @@ const RecentActivity = () => {
         throw new Error("Failed to fetch transactions");
       }
 
-      console.log("response is ", response.json);
-
       const data: Transaction[] = await response.json();
       setTransactions((prev) => [...prev, ...data]);
 
@@ -75,41 +73,6 @@ const RecentActivity = () => {
     fetchTransactions();
   }, []);
 
-  // const getTransactionDetails = (
-  //   tx: Transaction
-  // ): { amount: number; isSent: boolean; recipient: string } => {
-  //   let amount = 0;
-  //   let isSent = false;
-  //   let recipient = "";
-
-  //   // Check for coin transfer events
-  //   const withdrawEvent = tx.events.find(
-  //     (event) => event.type === "0x1::coin::WithdrawEvent"
-  //   );
-  //   const depositEvent = tx.events.find(
-  //     (event) => event.type === "0x1::coin::DepositEvent"
-  //   );
-
-  //   if (withdrawEvent && tx.sender === address) {
-  //     // This is a sent transaction
-  //     amount = parseInt(withdrawEvent.data.amount, 10);
-  //     isSent = true;
-  //     recipient = tx.payload.arguments[0]; // Assuming the first argument is the recipient address
-  //   } else if (depositEvent && depositEvent.data.recipient === address) {
-  //     // This is a received transaction
-  //     amount = parseInt(depositEvent.data.amount, 10);
-  //     isSent = false;
-  //     recipient = tx.sender;
-  //   } else if (tx.payload.function.includes("0x1::coin::transfer")) {
-  //     // Fallback to checking payload if no event is found
-  //     amount = parseInt(tx.payload.arguments[1], 10) || 0;
-  //     isSent = tx.sender === address;
-  //     recipient = isSent ? tx.payload.arguments[0] : tx.sender;
-  //   }
-
-  //   return { amount, isSent, recipient };
-  // };
-
   const getTransactionDetails = (
     tx: Transaction
   ): { amount: number; isSent: boolean; recipient: string } => {
@@ -117,6 +80,7 @@ const RecentActivity = () => {
     let isSent = false;
     let recipient = "";
 
+    // Check for coin transfer events
     const withdrawEvent = tx.events.find(
       (event) => event.type === "0x1::coin::WithdrawEvent"
     );
@@ -125,15 +89,19 @@ const RecentActivity = () => {
     );
 
     if (withdrawEvent && tx.sender === address) {
+      // This is a sent transaction
+      console.log("send transaction detected");
       amount = parseInt(withdrawEvent.data.amount, 10);
       isSent = true;
-      recipient = tx.payload.arguments[0];
-    } else if (depositEvent) {
-      console.log("deposit event identified");
+      recipient = tx.payload.arguments[0]; // Assuming the first argument is the recipient address
+    } else if (depositEvent && depositEvent.data.recipient === address) {
+      console.log("receive transaction detected");
+      // This is a received transaction
       amount = parseInt(depositEvent.data.amount, 10);
       isSent = false;
-      recipient = depositEvent.data.sender;
+      recipient = tx.sender;
     } else if (tx.payload.function.includes("0x1::coin::transfer")) {
+      // Fallback to checking payload if no event is found
       amount = parseInt(tx.payload.arguments[1], 10) || 0;
       isSent = tx.sender === address;
       recipient = isSent ? tx.payload.arguments[0] : tx.sender;
@@ -141,6 +109,7 @@ const RecentActivity = () => {
 
     return { amount, isSent, recipient };
   };
+
   const formatNumber = (num: number) => {
     return num.toLocaleString("en-US", {
       minimumFractionDigits: 2,
