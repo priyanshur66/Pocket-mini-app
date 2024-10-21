@@ -1,10 +1,10 @@
-"use client"
-import React from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+import React from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft } from "react-feather";
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { usePublicKey } from '@/store';
+import { usePublicKey } from "@/store";
 
 interface Transaction {
   version: string;
@@ -51,11 +51,13 @@ const RecentActivity = () => {
 
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Failed to fetch transactions');
+        throw new Error("Failed to fetch transactions");
       }
 
+      console.log("response is ", response);
+
       const data: Transaction[] = await response.json();
-      setTransactions(prev => [...prev, ...data]);
+      setTransactions((prev) => [...prev, ...data]);
 
       if (data.length === limit) {
         setNextCursor(data[data.length - 1].version);
@@ -63,7 +65,7 @@ const RecentActivity = () => {
         setNextCursor(null);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -73,14 +75,20 @@ const RecentActivity = () => {
     fetchTransactions();
   }, []);
 
-  const getTransactionDetails = (tx: Transaction): { amount: number; isSent: boolean; recipient: string } => {
+  const getTransactionDetails = (
+    tx: Transaction
+  ): { amount: number; isSent: boolean; recipient: string } => {
     let amount = 0;
     let isSent = false;
-    let recipient = '';
+    let recipient = "";
 
     // Check for coin transfer events
-    const withdrawEvent = tx.events.find(event => event.type === "0x1::coin::WithdrawEvent");
-    const depositEvent = tx.events.find(event => event.type === "0x1::coin::DepositEvent");
+    const withdrawEvent = tx.events.find(
+      (event) => event.type === "0x1::coin::WithdrawEvent"
+    );
+    const depositEvent = tx.events.find(
+      (event) => event.type === "0x1::coin::DepositEvent"
+    );
 
     if (withdrawEvent && tx.sender === address) {
       // This is a sent transaction
@@ -103,7 +111,10 @@ const RecentActivity = () => {
   };
 
   const formatNumber = (num: number) => {
-    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+    return num.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 8,
+    });
   };
 
   const convertToWholeTokens = (amount: number) => {
@@ -115,14 +126,16 @@ const RecentActivity = () => {
       const microseconds = parseInt(timestamp, 10);
       const milliseconds = microseconds / 1000;
       const date = new Date(milliseconds);
-      return format(date, 'MMM d, yyyy');
+      return format(date, "MMM d, yyyy");
     } catch (error) {
       console.error("Error parsing timestamp:", error);
       return "Unknown date";
     }
   };
 
-  const groupTransactionsByDate = (transactions: Transaction[]): GroupedTransactions => {
+  const groupTransactionsByDate = (
+    transactions: Transaction[]
+  ): GroupedTransactions => {
     return transactions.reduce((groups, transaction) => {
       const date = formatTimestamp(transaction.timestamp);
       if (!groups[date]) {
@@ -134,7 +147,9 @@ const RecentActivity = () => {
   };
 
   const groupedTransactions = groupTransactionsByDate(transactions);
-  const sortedDates = Object.keys(groupedTransactions).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  const sortedDates = Object.keys(groupedTransactions).sort(
+    (a, b) => new Date(b).getTime() - new Date(a).getTime()
+  );
 
   if (loading && transactions.length === 0) {
     return <div>Loading transactions...</div>;
@@ -162,33 +177,57 @@ const RecentActivity = () => {
             const { amount, isSent, recipient } = getTransactionDetails(tx);
             const formattedAmount = convertToWholeTokens(amount);
             return (
-              <div key={tx.version} className="bg-[#1414144F] rounded-2xl p-2 flex items-center justify-between mb-2">
+              <div
+                key={tx.version}
+                className="bg-[#1414144F] rounded-2xl p-2 flex items-center justify-between mb-2"
+              >
                 <div className="flex items-center ">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center mr-3 relative">
                     <img src="/aptos.svg" alt="Aptos" className="w-8 h-8" />
                     {isSent ? (
-                      <img src="/sent.svg" alt="" className="w-4 h-4 absolute -bottom-1 -right-1"  />
+                      <img
+                        src="/sent.svg"
+                        alt=""
+                        className="w-4 h-4 absolute -bottom-1 -right-1"
+                      />
                     ) : (
-                      <img src='/recieved.svg' alt="" className="w-4 h-4 text-green-500 absolute -bottom-1 -right-1" />
+                      <img
+                        src="/recieved.svg"
+                        alt=""
+                        className="w-4 h-4 text-green-500 absolute -bottom-1 -right-1"
+                      />
                     )}
                   </div>
                   <div>
-                    <p className="font-bold text-base">{isSent ? "Sent" : "Received"}</p>
+                    <p className="font-bold text-base">
+                      {isSent ? "Sent" : "Received"}
+                    </p>
                     <p className="text-gray-400 text-sm">
-                      {isSent ? "To" : "From"} {recipient.slice(0,6)}...{recipient.slice(-4)}
+                      {isSent ? "To" : "From"} {recipient.slice(0, 6)}...
+                      {recipient.slice(-4)}
                     </p>
                   </div>
                 </div>
-                <p className={`font-semibold ${formattedAmount === 0 ? "" : (isSent ? "text-red-500" : "text-green-500")}`}>
-                  {formattedAmount === 0 ? "0 APT" : `${isSent ? "-" : "+"}${formatNumber(formattedAmount)} APT`}
+                <p
+                  className={`font-semibold ${
+                    formattedAmount === 0
+                      ? ""
+                      : isSent
+                      ? "text-red-500"
+                      : "text-green-500"
+                  }`}
+                >
+                  {formattedAmount === 0
+                    ? "0 APT"
+                    : `${isSent ? "-" : "+"}${formatNumber(
+                        formattedAmount
+                      )} APT`}
                 </p>
               </div>
             );
           })}
         </div>
       ))}
-
-
     </div>
   );
 };
