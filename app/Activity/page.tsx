@@ -94,7 +94,7 @@ const RecentActivity = () => {
       amount = parseInt(withdrawEvent.data.amount, 10);
       isSent = true;
       recipient = tx.payload.arguments[0]; // Assuming the first argument is the recipient address
-    } else if (depositEvent && depositEvent.data.recipient === address) {
+    } else if (depositEvent ) {
       console.log("receive transaction detected");
       // This is a received transaction
       amount = parseInt(depositEvent.data.amount, 10);
